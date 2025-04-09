@@ -5,13 +5,8 @@ AI Packing Assistant is a smart web app built using Streamlit (for GUI), Python 
 "What should I pack for a 5-day trip to Manali in December for trekking?"
 
 🛠️ Built With
-Component	Description
-🐍 Python	Core logic for NLP-based input parsing, API calls, and list generation
-🖥️ Streamlit	Interactive and simple web interface
-☁️ OpenWeatherMap API	Fetches real-time weather data for destination
-📦 Custom Logic	Intelligent packing list generator using destination, duration, weather, and purpose
-⚙️ Key Functionalities
-💬 Smart Input Parsing
+The AI Packing Assistant is developed using Python as the primary programming language for implementing core logic and context-driven rule systems. The user interface is built using Streamlit, which allows for rapid development of an interactive and responsive web application. To personalize recommendations based on weather conditions, the app integrates the OpenWeatherMap API for real-time and forecasted weather data. It also utilizes Natural Language Processing (NLP) to interpret user queries in plain language, extracting key details like destination, duration, and trip type. At its core, a custom rule-based engine intelligently maps this input to generate relevant and practical packing checklists tailored to the traveler’s needs.
+
 Understands natural questions like:
 "Packing list for Goa in monsoon" or "What to take for a 3-day work trip to Bangalore?"
 
