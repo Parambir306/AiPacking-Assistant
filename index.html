@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Packing Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #e9f1f7;
+            margin: 0;
+            padding: 0;
+        }
+        #chatbox {
+            width: 80%;
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: 70vh;
+            overflow-y: auto;
+        }
+        .msg {
+            margin: 10px 0;
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 80%;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+        .bot {
+            background-color: #f0f0f0;
+            color: #222;
+            text-align: left;
+        }
+        .user {
+            background-color: #3b82f6;
+            color: white;
+            text-align: right;
+            margin-left: auto;
+        }
+        #input-area {
+            width: 80%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 10px 0;
+            display: flex;
+        }
+        input {
+            flex-grow: 1;
+            padding: 14px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 25px;
+            outline: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ccc;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatbox">
+    <div class="msg bot">Hey there! Where are you going?</div>
+</div>
+
+<div id="input-area">
+    <input type="text" id="message" placeholder="Type your message and press Enter..." autocomplete="off">
+</div>
+
+<script>
+    const chatbox = document.getElementById('chatbox');
+    const input = document.getElementById('message');
+
+    input.addEventListener('keydown', async function (e) {
+        if (e.key === 'Enter') {
+            const msg = input.value.trim();
+            if (!msg) return;
+            appendMsg(msg, 'user');
+            input.value = '';
+
+            // Show loading message immediately
+            appendMsg("I am preparing your list... <span class='loading'></span>", 'bot');
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await response.json();
+
+            // Remove loading message
+            const lastMsg = chatbox.lastChild;
+            if (lastMsg && lastMsg.textContent.includes("I am preparing your list")) {
+                chatbox.removeChild(lastMsg);
+            }
+
+            // Type the actual response
+            typeMsg(data.reply, 'bot');
+        }
+    });
+
+    function appendMsg(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('msg', sender);
+        msgDiv.innerHTML = text.replace(/\n/g, "<br>");
+        chatbox.appendChild(msgDiv);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function typeMsg(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('msg', sender);
+        chatbox.appendChild(msgDiv);
+        chatbox.scrollTop = chatbox.scrollHeight;
+
+        let i = 0;
+        const speed = 5; // Faster typing speed (was 20ms, now 5ms)
+        const lines = text.split('<br>'); // Split by line breaks
+        let currentLine = 0;
+
+        function typeLine() {
+            if (currentLine < lines.length) {
+                const line = lines[currentLine];
+                let lineText = line.replace(/<[^>]+>/g, ''); // Remove HTML tags for typing
+                let htmlParts = line.split(/(<[^>]+>)/); // Preserve HTML tags
+                let j = 0;
+
+                function typeChar() {
+                    if (j < lineText.length) {
+                        let displayText = '';
+                        let charCount = 0;
+                        for (let part of htmlParts) {
+                            if (!/<[^>]+>/.test(part)) {
+                                displayText += part.slice(0, Math.min(part.length, j - charCount));
+                                charCount += part.length;
+                            } else {
+                                displayText += part;
+                            }
+                        }
+                        msgDiv.innerHTML = lines.slice(0, currentLine).join('<br>') + (currentLine > 0 ? '<br>' : '') + displayText;
+                        j++;
+                        setTimeout(typeChar, speed);
+                    } else {
+                        msgDiv.innerHTML = lines.slice(0, currentLine + 1).join('<br>');
+                        currentLine++;
+                        setTimeout(typeLine, speed * 10); // Small delay between lines
+                    }
+                }
+                typeChar();
+            }
+        }
+        typeLine();
+    }
+</script>
+
+</body>
+</html>
